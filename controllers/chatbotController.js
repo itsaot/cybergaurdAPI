@@ -1,7 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY, // put your OpenAI API key in .env
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 const openai = new OpenAIApi(configuration);
@@ -22,9 +22,7 @@ exports.chat = async (req, res) => {
       ],
     });
 
-    const responseMessage = completion.data.choices[0].message.content;
-
-    res.json({ reply: responseMessage });
+    res.json({ reply: completion.data.choices[0].message.content });
   } catch (error) {
     console.error("Chatbot error:", error);
     res.status(500).json({ message: "Chatbot service failed" });
