@@ -1,10 +1,11 @@
 const express = require("express");
 const connectDB = require("./config/db");
 const dotenv = require("dotenv");
+console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
 const cors = require("cors");
 const incidentRoutes = require('./routes/incidentRoutes');
 const chatbotRoutes = require("./routes/chatbotRoutes");
-app.use("/api/chatbot", chatbotRoutes);
+
 
 
 // Load environment variables
@@ -26,7 +27,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/posts", require("./routes/posts"));
 app.use("/api/moderation", require("./routes/moderation"));
 app.use("/api/escalation", require("./routes/escalation"));
-
+app.use("/api/chatbot", chatbotRoutes);
 // 404 handler (keep after routes)
 app.use((req, res) => {
   res.status(404).json({ message: "Resource not found" });

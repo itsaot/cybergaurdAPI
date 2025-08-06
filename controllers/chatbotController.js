@@ -1,30 +1,39 @@
-const { Configuration, OpenAIApi } = require("openai");
+// /src/controllers/chatbotController.js
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+require("dotenv").config();
 
-const openai = new OpenAIApi(configuration);
-
-exports.chat = async (req, res) => {
+const chat = async (req, res) => {
   try {
+    // Dynamically import OpenAI SDK v4+
+    const { default: OpenAI } = await import("openai");
+
+    console.log("OPENAI_API_KEY in chatbotController:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
+    console.log("Incoming request body:", req.body);
+
     const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ message: "Message is required" });
+      return res.status(400).json({ error: "Message is required" });
     }
 
-    const completion = await openai.createChatCompletion({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "You are a helpful and compassionate assistant for bullying support." },
-        { role: "user", content: message },
-      ],
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
-    res.json({ reply: completion.data.choices[0].message.content });
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message }],
+    });
+
+    console.log("OpenAI response:", response);
+
+    const reply = response.choices[0]?.message?.content;
+
+    res.status(200).json({ reply });
   } catch (error) {
     console.error("Chatbot error:", error);
-    res.status(500).json({ message: "Chatbot service failed" });
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+
+module.exports = { chat };

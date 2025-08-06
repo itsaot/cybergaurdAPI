@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const chatbotController = require("../controllers/chatbotController");
-const auth = require("../middleware/auth"); // optional, if you want to secure
 
-router.post("/chat", auth, chatbotController.chat);
+const { chat } = require("../controllers/chatbotController");
+
+router.post("/chat", chat); // or use auth middleware if needed
 
 module.exports = router;
