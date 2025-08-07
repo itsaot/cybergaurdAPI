@@ -11,30 +11,31 @@ const {
   deleteComment,
   softDeletePost,
   flagPost,
-  deletePost, // Assuming you have this in your controller for full delete
+  deletePost,
 } = require("../controllers/postController");
 
-const { auth, isAdmin, verifyToken, verifyAdmin } = require("../middleware/auth");
+const { auth, isAdmin } = require("../middleware/auth");
 
-// Public routes (no auth required)
+// Public routes
 router.get("/", getPosts);
-router.post("/", createPost);
+router.post("/", createPost); // 🔒 You might want to secure this too
 router.get("/:id", getPostById);
 
-// Like/unlike toggling (no auth required)
-router.post("/:postId/like", toggleLikePost);
+// Like/unlike
+router.post("/:postId/like", auth, toggleLikePost); // ✅ added auth
 
-// Comments (no auth required for adding comments and replies)
+// Comments
 router.post("/:postId/comments", addComment);
 router.post("/:postId/comments/:commentId/replies", replyToComment);
 
 // Authenticated routes
-router.delete("/:postId/comments/:commentId", auth, deleteComment); // User can delete own comment or admin can delete any
+router.delete("/:postId/comments/:commentId", auth, deleteComment);
+
+// Flagging — let all authenticated users flag
+router.post("/:postId/flag", auth, flagPost); // ✅ remove isAdmin unless only admins can flag
 
 // Admin-only routes
-router.delete("/:postId", auth, isAdmin, softDeletePost);  // Soft delete post (hide from users)
-router.delete("/:postId/full", auth, isAdmin, deletePost); // Full delete post (if implemented)
-router.post("/:postId/flag", auth, isAdmin, flagPost);
+router.delete("/:postId", auth, isAdmin, softDeletePost);
 router.delete("/:postId/full", auth, isAdmin, deletePost);
 
 module.exports = router;
