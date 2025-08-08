@@ -1,4 +1,5 @@
 const Post = require("../models/Post");
+const mongoose = require("mongoose");
 
 // Get all posts
 const getPosts = async (req, res) => {
@@ -67,7 +68,6 @@ const toggleLikePost = async (req, res) => {
       return res.status(401).json({ message: "Authentication required to like posts" });
     }
 
-    const mongoose = require("mongoose");
     const userObjId = mongoose.Types.ObjectId(userId);
 
     const post = await Post.findById(postId);
@@ -214,8 +214,6 @@ const deletePost = async (req, res) => {
     res.status(500).json({ message: error.message || "Internal Server Error" });
   }
 };
-const Post = require("../models/Post");
-const mongoose = require("mongoose");
 
 // React to a post with emoji (add/update/remove reaction)
 const reactToPost = async (req, res) => {
@@ -259,7 +257,7 @@ module.exports = {
   createPost,
   getPostById,
   toggleLikePost,
-  reactToPost,          // <--- added here
+  reactToPost,
   addComment,
   replyToComment,
   deleteComment,
