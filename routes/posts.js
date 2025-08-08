@@ -6,6 +6,7 @@ const {
   createPost,
   getPostById,
   toggleLikePost,
+  reactToPost, 
   addComment,
   replyToComment,
   deleteComment,

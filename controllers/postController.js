@@ -214,12 +214,52 @@ const deletePost = async (req, res) => {
     res.status(500).json({ message: error.message || "Internal Server Error" });
   }
 };
+const Post = require("../models/Post");
+const mongoose = require("mongoose");
+
+// React to a post with emoji (add/update/remove reaction)
+const reactToPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user?._id;
+    const { emoji } = req.body;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!emoji) return res.status(400).json({ message: "Emoji reaction is required" });
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    // Initialize reactions map if doesn't exist
+    post.reactions = post.reactions || {};
+
+    // reactions is expected as an object: { userId: emoji }
+    // Convert userId to string key
+    const userKey = userId.toString();
+
+    if (post.reactions[userKey] === emoji) {
+      // Same emoji sent again = remove reaction (toggle off)
+      delete post.reactions[userKey];
+    } else {
+      // Add/update reaction
+      post.reactions[userKey] = emoji;
+    }
+
+    await post.save();
+
+    res.json({ reactions: post.reactions });
+  } catch (error) {
+    console.error("Error reacting to post:", error);
+    res.status(500).json({ message: "Failed to react to post" });
+  }
+};
 
 module.exports = {
   getPosts,
   createPost,
   getPostById,
   toggleLikePost,
+  reactToPost,          // <--- added here
   addComment,
   replyToComment,
   deleteComment,
