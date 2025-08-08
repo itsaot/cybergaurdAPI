@@ -46,7 +46,7 @@ const createPost = async (req, res) => {
 // Get post by ID
 const getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id)
+    const post = await Post.findById(req.params.postId)
       .populate("createdBy", "username")
       .populate("comments.user", "username");
 
@@ -57,33 +57,28 @@ const getPostById = async (req, res) => {
   }
 };
 
-// Toggle like/unlike a post
+// Toggle like/unlike a post — only authenticated user
 const toggleLikePost = async (req, res) => {
   try {
-    const postId = req.params.postId || req.params.id;
-    // userId from auth or body
-    let userId = req.user?._id || req.body.userId;
+    const postId = req.params.postId;
+    const userId = req.user?._id;
 
     if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
+      return res.status(401).json({ message: "Authentication required to like posts" });
     }
 
-    // Convert userId to mongoose ObjectId for safe comparison
     const mongoose = require("mongoose");
-    userId = mongoose.Types.ObjectId(userId);
+    const userObjId = mongoose.Types.ObjectId(userId);
 
     const post = await Post.findById(postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    // Check if userId is in likes (convert all to string to compare)
-    const liked = post.likes.some((id) => id.toString() === userId.toString());
+    const liked = post.likes.some((id) => id.toString() === userObjId.toString());
 
     if (liked) {
-      // Remove userId
-      post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
+      post.likes = post.likes.filter((id) => id.toString() !== userObjId.toString());
     } else {
-      // Add userId
-      post.likes.push(userId);
+      post.likes.push(userObjId);
     }
 
     await post.save();
@@ -95,14 +90,13 @@ const toggleLikePost = async (req, res) => {
   }
 };
 
-
 // Add a comment
 const addComment = async (req, res) => {
   try {
     const { userId, text } = req.body;
     if (!userId || !text) return res.status(400).json({ message: "User ID and text are required" });
 
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const comment = { user: userId, text, createdAt: new Date() };
@@ -152,7 +146,7 @@ const deleteComment = async (req, res) => {
     const userId = req.user._id.toString();
     const userRole = req.user.role;
 
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const comment = post.comments.id(commentId);
@@ -174,7 +168,7 @@ const deleteComment = async (req, res) => {
 // Admin soft delete post (hide from users)
 const softDeletePost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     post.deletedForUser = true;
@@ -189,7 +183,7 @@ const softDeletePost = async (req, res) => {
 // Admin flags a post
 const flagPost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const { reason } = req.body;
@@ -202,6 +196,8 @@ const flagPost = async (req, res) => {
     res.status(500).json({ message: "Error flagging post", error });
   }
 };
+
+// Admin hard delete post
 const deletePost = async (req, res) => {
   try {
     const postId = req.params.postId;

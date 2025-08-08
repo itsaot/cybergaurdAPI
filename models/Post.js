@@ -64,6 +64,12 @@ const PostSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  reactions: {
+  type: Map,
+  of: Number,
+  default: {},
+},
+
   comments: [CommentSchema],
   deletedForUser: {
     type: Boolean,

@@ -127,3 +127,35 @@ exports.reactToReport = async (req, res) => {
     res.status(500).json({ message: "Error reacting to report" });
   }
 };
+// POST /api/posts/:id/react
+const reactToPost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user?._id;
+    const { emoji } = req.body;
+
+    if (!emoji || typeof emoji !== "string") {
+      return res.status(400).json({ message: "Emoji is required and must be a string" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    if (!post.reactions) {
+      post.reactions = {};
+    }
+
+    // Increment emoji count
+    const currentCount = post.reactions.get(emoji) || 0;
+    post.reactions.set(emoji, currentCount + 1);
+
+    await post.save();
+
+    res.status(200).json({
+      message: `Reacted with ${emoji}`,
+      reactions: Object.fromEntries(post.reactions),
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to react" });
+  }
+};
