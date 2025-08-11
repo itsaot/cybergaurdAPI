@@ -19,15 +19,15 @@ const { auth, isAdmin } = require("../middleware/auth");
 
 // Public routes
 router.get("/", getPosts);
-router.post("/", createPost); // 🔒 You might want to secure this too
+router.post("/",auth, createPost); // 🔒 You might want to secure this too
 router.get("/:id", getPostById);
 
 // Like/unlike
 router.post("/:postId/like", auth, toggleLikePost); // ✅ added auth
 router.post("/:id/react", auth, reactToPost);
 // Comments
-router.post("/:postId/comments", addComment);
-router.post("/:postId/comments/:commentId/replies", replyToComment);
+router.post("/:postId/comments",auth, addComment);
+router.post("/:postId/comments/:commentId/replies",auth, replyToComment);
 
 // Authenticated routes
 router.delete("/:postId/comments/:commentId", auth, deleteComment);
