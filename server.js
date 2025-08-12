@@ -1,15 +1,13 @@
 const express = require("express");
 const connectDB = require("./config/db");
 const dotenv = require("dotenv");
-console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
 const cors = require("cors");
-const incidentRoutes = require('./routes/incidentRoutes');
-const chatbotRoutes = require("./routes/chatbotRoutes");
-
-
+const cookieParser = require("cookie-parser");
 
 // Load environment variables
 dotenv.config();
+
+console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
 
 // Initialize app
 const app = express();
@@ -17,23 +15,24 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
-app.use('/api', incidentRoutes);
-app.use("/api/reports", require("./routes/reports"));
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/posts", require("./routes/posts"));
-app.use("/api/moderation", require("./routes/moderation"));
-app.use("/api/escalation", require("./routes/escalation"));
-app.use("/api/chatbot", chatbotRoutes);
+app.use('/api', require('./routes/incidentRoutes'));
+app.use('/api/reports', require('./routes/reports'));
+app.use('/api/auth', require('./routes/auth'));      // Mount auth routes here only once
+app.use('/api/posts', require('./routes/posts'));
+app.use('/api/moderation', require('./routes/moderation'));
+app.use('/api/escalation', require('./routes/escalation'));
+app.use('/api/chatbot', require('./routes/chatbotRoutes'));
+
 // 404 handler (keep after routes)
 app.use((req, res) => {
   res.status(404).json({ message: "Resource not found" });
 });
-const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
 
 // Error handler (final fallback)
 app.use((err, req, res, next) => {

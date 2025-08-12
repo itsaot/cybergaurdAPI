@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema({
   username: { type: String },
   password: { type: String },
+  refreshTokens: [{ token: String, createdAt: { type: Date, default: Date.now } }],
+
   role: {
     type: String,
     enum: ["user", "moderator", "admin"],
