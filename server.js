@@ -8,8 +8,8 @@ const cookieParser = require("cookie-parser");
 dotenv.config();
 
 console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-console.log('JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
+console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
 
 // Initialize app
 const app = express();
@@ -21,20 +21,19 @@ connectDB();
 const allowedOrigins = [
   "https://preview--cyberguard-speak-up.lovable.app",
   "https://cyberguard-speak-up.vercel.app",
-  // Add more frontend URLs here if needed, e.g.:
-  // "https://your-production-domain.com"
+  // add other frontend origins if needed
 ];
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow requests with no origin (curl, postman)
+    if (!origin) return callback(null, true); // allow curl, postman, server-to-server
     if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+      const msg = `CORS policy does not allow access from origin: ${origin}`;
       return callback(new Error(msg), false);
     }
     return callback(null, true);
   },
-  credentials: true // Allow cookies and auth headers in cross-origin requests
+  credentials: true // allow cookies to be sent cross-origin
 }));
 
 // Middleware

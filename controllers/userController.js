@@ -11,6 +11,15 @@ const generateRefreshToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
 };
 
+// Common cookie options for refresh token
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.COOKIE_SECURE === "true",  // true in prod with HTTPS
+  sameSite: "None",      // must be None for cross-origin cookies
+  domain: process.env.COOKIE_DOMAIN,  // e.g. "cybergaurdapi.onrender.com"
+  path: "/",
+};
+
 // REGISTER
 exports.register = async (req, res) => {
   const { username, password, role } = req.body;
@@ -31,13 +40,7 @@ exports.register = async (req, res) => {
     const refreshToken = generateRefreshToken(payload);
 
     // Send refresh token as HTTP-only cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.COOKIE_SECURE === "true",
-      sameSite: "Strict",
-      domain: process.env.COOKIE_DOMAIN,  // no fallback here
-      path: "/",
-    });
+    res.cookie("refreshToken", refreshToken, cookieOptions);
 
     res.json({ accessToken });
   } catch (err) {
@@ -62,13 +65,7 @@ exports.login = async (req, res) => {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.COOKIE_SECURE === "true",
-      sameSite: "Strict",
-      domain: process.env.COOKIE_DOMAIN,  // no fallback here
-      path: "/",
-    });
+    res.cookie("refreshToken", refreshToken, cookieOptions);
 
     res.json({ accessToken });
   } catch (err) {
@@ -92,13 +89,7 @@ exports.refreshToken = (req, res) => {
 
 // LOGOUT
 exports.logout = (req, res) => {
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    secure: process.env.COOKIE_SECURE === "true",
-    sameSite: "Strict",
-    domain: process.env.COOKIE_DOMAIN,  // no fallback here
-    path: "/",
-  });
+  res.clearCookie("refreshToken", cookieOptions);
   res.json({ msg: "Logged out successfully" });
 };
 
