@@ -21,6 +21,8 @@ connectDB();
 const allowedOrigins = [
   "https://preview--cyberguard-speak-up.lovable.app",
   "https://cyberguard-speak-up.vercel.app",
+  'https://1e5ad73a-bda2-4467-bf15-a75ba1de7f84.lovableproject.com/', // Lovable preview URL
+  "https://cybergaurdapi.onrender.com",
   // add other frontend origins if needed
 ];
 
