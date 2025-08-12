@@ -8,6 +8,8 @@ const cookieParser = require("cookie-parser");
 dotenv.config();
 
 console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
 
 // Initialize app
 const app = express();
