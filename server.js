@@ -21,32 +21,27 @@ connectDB();
 const allowedOrigins = [
   "https://preview--cyberguard-speak-up.lovable.app",
   "https://cyberguard-speak-up.vercel.app",
-  "https://1e5ad73a-bda2-4467-bf15-a75ba1de7f84.lovableproject.com", // removed trailing slash
+  /\.lovable\.app$/,           // any Lovable preview
+  /\.lovableproject\.com$/,    // any Lovable project link
   "https://cybergaurdapi.onrender.com"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow Postman, curl, server requests
-    if (allowedOrigins.includes(origin)) {
+    if (!origin) return callback(null, true); // allow non-browser tools
+    const isAllowed = allowedOrigins.some(o =>
+      o instanceof RegExp ? o.test(origin) : o === origin
+    );
+    if (isAllowed) {
       return callback(null, true);
-    } else {
-      console.warn(`❌ Blocked by CORS: ${origin}`);
-      return callback(new Error(`CORS policy does not allow access from origin: ${origin}`), false);
     }
+    return callback(new Error(`CORS policy does not allow access from origin: ${origin}`), false);
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-// ✅ Handle preflight OPTIONS requests globally
-app.options("*", cors({
-  origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
+// ✅ Handle OPTIONS preflight requests globally
+app.options('*', cors());
 
 // Middleware
 app.use(express.json());
@@ -61,12 +56,12 @@ app.use('/api/moderation', require('./routes/moderation'));
 app.use('/api/escalation', require('./routes/escalation'));
 app.use('/api/chatbot', require('./routes/chatbotRoutes'));
 
-// 404 handler (keep after routes)
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Resource not found" });
 });
 
-// Error handler (final fallback)
+// Error handler
 app.use((err, req, res, next) => {
   console.error("Server Error:", err.stack);
   res.status(500).json({ message: "Internal server error" });
