@@ -19,27 +19,24 @@ const { auth, isAdmin } = require("../middleware/auth");
 
 // Public routes
 router.get("/", getPosts);
-router.post("/", createPost); // Allow anonymous or authenticated
+router.post("/",auth, createPost); // 🔒 You might want to secure this too
 router.get("/:id", getPostById);
 
-// Like/unlike (anonymous possible)
-router.post("/:postId/like", toggleLikePost);
+// Like/unlike
+router.post("/:postId/like", auth, toggleLikePost); // ✅ added auth
+router.post("/:id/react", auth, reactToPost);
+// Comments
+router.post("/:postId/comments",auth, addComment);
+router.post("/:postId/comments/:commentId/replies",auth, replyToComment);
 
-// React to post (anonymous possible)
-router.post("/:id/react", reactToPost);
+// Authenticated routes
+router.delete("/:postId/comments/:commentId", auth, deleteComment);
 
-// Comments (anonymous possible)
-router.post("/:postId/comments", addComment);
-router.post("/:postId/comments/:commentId/replies", replyToComment);
+// Flagging — let all authenticated users flag
+router.post("/:postId/flag", auth, flagPost); // ✅ remove isAdmin unless only admins can flag
 
-// Delete own comment (optional — leave public delete if no login)
-router.delete("/:postId/comments/:commentId", deleteComment);
-
-// Flagging (anonymous possible)
-router.post("/:postId/flag", flagPost);
-
-// Admin-only
-router.delete("/:postId", isAdmin, softDeletePost);
-router.delete("/:postId/full", isAdmin, deletePost);
+// Admin-only routes
+router.delete("/:postId", auth, isAdmin, softDeletePost);
+router.delete("/:postId/full", auth, isAdmin, deletePost);
 
 module.exports = router;
