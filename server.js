@@ -8,8 +8,8 @@ const cookieParser = require("cookie-parser");
 dotenv.config();
 
 console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET);
+console.log("JWT_SECRET:", process.env.JWT_SECRET ? "[FOUND]" : "[NOT FOUND]");
+console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET ? "[FOUND]" : "[NOT FOUND]");
 
 // Initialize app
 const app = express();
@@ -17,7 +17,7 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// CORS configuration
+// ✅ CORS configuration
 const allowedOrigins = [
   "https://preview--cyberguard-speak-up.lovable.app",
   "https://cyberguard-speak-up.vercel.app",
@@ -26,9 +26,9 @@ const allowedOrigins = [
   "https://cybergaurdapi.onrender.com"
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow non-browser tools
+    if (!origin) return callback(null, true); // allow requests with no origin (like mobile apps / curl)
     const isAllowed = allowedOrigins.some(o =>
       o instanceof RegExp ? o.test(origin) : o === origin
     );
@@ -37,11 +37,14 @@ app.use(cors({
     }
     return callback(new Error(`CORS policy does not allow access from origin: ${origin}`), false);
   },
-  credentials: true
-}));
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
 
-// ✅ Handle OPTIONS preflight requests globally
-app.options('*', cors());
+// ✅ Apply CORS globally (before routes)
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight requests
 
 // Middleware
 app.use(express.json());
