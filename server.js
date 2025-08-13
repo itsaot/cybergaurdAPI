@@ -21,21 +21,31 @@ connectDB();
 const allowedOrigins = [
   "https://preview--cyberguard-speak-up.lovable.app",
   "https://cyberguard-speak-up.vercel.app",
-  'https://1e5ad73a-bda2-4467-bf15-a75ba1de7f84.lovableproject.com/', // Lovable preview URL
-  "https://cybergaurdapi.onrender.com",
-  // add other frontend origins if needed
+  "https://1e5ad73a-bda2-4467-bf15-a75ba1de7f84.lovableproject.com", // removed trailing slash
+  "https://cybergaurdapi.onrender.com"
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true); // allow curl, postman, server-to-server
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `CORS policy does not allow access from origin: ${origin}`;
-      return callback(new Error(msg), false);
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow Postman, curl, server requests
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn(`❌ Blocked by CORS: ${origin}`);
+      return callback(new Error(`CORS policy does not allow access from origin: ${origin}`), false);
     }
-    return callback(null, true);
   },
-  credentials: true // allow cookies to be sent cross-origin
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// ✅ Handle preflight OPTIONS requests globally
+app.options("*", cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
 
 // Middleware
