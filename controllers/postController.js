@@ -35,6 +35,9 @@ const createPost = async (req, res) => {
       isAnonymous: isAnonymous || false,
       createdBy: isAnonymous ? null : author,
       createdAt: new Date(),
+      likes: [],
+      reactions: [],
+      comments: [],
     });
 
     await newPost.save();
@@ -58,48 +61,43 @@ const getPostById = async (req, res) => {
   }
 };
 
-// Toggle like/unlike a post — only authenticated user
+// Toggle like/unlike a post
 const toggleLikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id;
 
-    if (!userId) {
-      return res.status(401).json({ message: "Authentication required to like posts" });
-    }
-
-    const userObjId = mongoose.Types.ObjectId(userId);
+    if (!userId) return res.status(401).json({ message: "Authentication required to like posts" });
 
     const post = await Post.findById(postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    const liked = post.likes.some((id) => id.toString() === userObjId.toString());
+    const liked = post.likes.some(id => id.toString() === userId.toString());
 
     if (liked) {
-      post.likes = post.likes.filter((id) => id.toString() !== userObjId.toString());
+      post.likes = post.likes.filter(id => id.toString() !== userId.toString());
     } else {
-      post.likes.push(userObjId);
+      post.likes.push(userId);
     }
 
     await post.save();
-
     res.json({ liked: !liked, likesCount: post.likes.length });
-  } catch (error) {
-    console.error("Error toggling like:", error);
-    res.status(500).json({ message: error.message || "Internal Server Error" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 // Add a comment
 const addComment = async (req, res) => {
   try {
-    const { userId, text } = req.body;
+    const { text } = req.body;
+    const userId = req.user?._id;
     if (!userId || !text) return res.status(400).json({ message: "User ID and text are required" });
 
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    const comment = { user: userId, text, createdAt: new Date() };
+    const comment = { user: userId, text, createdAt: new Date(), likes: [], replies: [] };
     post.comments.push(comment);
     await post.save();
 
@@ -112,34 +110,27 @@ const addComment = async (req, res) => {
 // Reply to a comment
 const replyToComment = async (req, res) => {
   try {
-    const { postId, commentId } = req.params;
-    const { userId, text } = req.body;
-    if (!userId || !text) {
-      return res.status(400).json({ message: "User ID and text are required" });
-    }
+    const { commentId } = req.params;
+    const { text } = req.body;
+    const userId = req.user?._id;
+    if (!userId || !text) return res.status(400).json({ message: "User ID and text are required" });
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const comment = post.comments.id(commentId);
     if (!comment) return res.status(404).json({ message: "Comment not found" });
 
-    comment.replies = comment.replies || [];
-    comment.replies.push({
-      user: userId,
-      text,
-      createdAt: new Date(),
-    });
+    comment.replies.push({ user: userId, text, createdAt: new Date(), likes: [] });
 
     await post.save();
-
     res.status(201).json(comment);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Delete a comment (user can delete own; admin can delete any)
+// Delete a comment
 const deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -158,14 +149,13 @@ const deleteComment = async (req, res) => {
 
     comment.remove();
     await post.save();
-
     res.json({ message: "Comment deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Admin soft delete post (hide from users)
+// Admin soft delete post
 const softDeletePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
@@ -180,7 +170,7 @@ const softDeletePost = async (req, res) => {
   }
 };
 
-// Admin flags a post
+// Flag a post
 const flagPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
@@ -192,34 +182,31 @@ const flagPost = async (req, res) => {
     await post.save();
 
     res.status(200).json({ message: "Post flagged successfully", post });
-  } catch (error) {
-    res.status(500).json({ message: "Error flagging post", error });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// Admin hard delete post
+// Admin hard delete
 const deletePost = async (req, res) => {
   try {
     const postId = req.params.postId;
-
     const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
-    }
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
     await Post.findByIdAndDelete(postId);
-
     res.status(200).json({ message: "Post deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message || "Internal Server Error" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// React to a post with emoji (add/update/remove reaction)
+// React to a post
 const reactToPost = async (req, res) => {
   try {
     const postId = req.params.id;
     const userId = req.user?._id;
+    const username = req.user?.username;
     const { emoji } = req.body;
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -228,26 +215,20 @@ const reactToPost = async (req, res) => {
     const post = await Post.findById(postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    // Initialize reactions map if doesn't exist
-    post.reactions = post.reactions || {};
+    post.reactions = post.reactions || [];
 
-    // reactions is expected as an object: { userId: emoji }
-    // Convert userId to string key
-    const userKey = userId.toString();
-
-    if (post.reactions[userKey] === emoji) {
-      // Same emoji sent again = remove reaction (toggle off)
-      delete post.reactions[userKey];
+    const existing = post.reactions.findIndex(r => r.userId.toString() === userId.toString());
+    if (existing !== -1) {
+      if (post.reactions[existing].emoji === emoji) post.reactions.splice(existing, 1);
+      else post.reactions[existing].emoji = emoji;
     } else {
-      // Add/update reaction
-      post.reactions[userKey] = emoji;
+      post.reactions.push({ userId, username, emoji });
     }
 
     await post.save();
-
     res.json({ reactions: post.reactions });
-  } catch (error) {
-    console.error("Error reacting to post:", error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Failed to react to post" });
   }
 };
