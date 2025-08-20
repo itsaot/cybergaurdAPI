@@ -66,6 +66,7 @@ const toggleLikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id;
+    console.log('Here is the req.user?._id' + req.user?._id);
     console.log('Here is the full data' + req);
     console.log('Here is the user: ' + req.user);
 
