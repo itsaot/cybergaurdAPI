@@ -66,7 +66,8 @@ const toggleLikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.user?._id;
-    Console.log(req.user)
+    console.log('Here is the full data' + req);
+    console.log('Here is the user: ' + req.user);
 
     if (!userId) return res.status(401).json({ message: "Authentication required to like posts" });
 
