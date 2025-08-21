@@ -208,10 +208,6 @@ const reactToPost = async (req, res) => {
     const userId = req.user?.id;
     const username = req.user?.username;
     const { emoji } = req.body;
-    
-    console.log("request body:", JSON.stringify(req.body, null, 2));
-    console.log('postId : '+ postId+' userId: '+ userId+' username: '+ username);
-
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
     if (!emoji) return res.status(400).json({ message: "Emoji reaction is required" });
 
