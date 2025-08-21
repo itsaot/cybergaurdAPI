@@ -65,10 +65,7 @@ const getPostById = async (req, res) => {
 const toggleLikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
-    const userId = req.user?._id;
-    console.log('Here is the req.user?._id' + req.user?._id);
-    console.log('Here is the full data:', JSON.stringify(req, null, 2));
-    console.log('Here is the user:', JSON.stringify(req.user, null, 2));
+    const userId = req.user?.userId;
 
     if (!userId) return res.status(401).json({ message: "Authentication required to like posts" });
 
@@ -94,7 +91,7 @@ const toggleLikePost = async (req, res) => {
 const addComment = async (req, res) => {
   try {
     const { text } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user?.userId;
     if (!userId || !text) return res.status(400).json({ message: "User ID and text are required" });
 
     const post = await Post.findById(req.params.postId);
@@ -115,7 +112,7 @@ const replyToComment = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { text } = req.body;
-    const userId = req.user?._id;
+    const userId = req.user?.userId;
     if (!userId || !text) return res.status(400).json({ message: "User ID and text are required" });
 
     const post = await Post.findById(req.params.postId);
@@ -137,7 +134,7 @@ const replyToComment = async (req, res) => {
 const deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const userId = req.user._id.toString();
+    const userId = req.user.userId.toString();
     const userRole = req.user.role;
 
     const post = await Post.findById(req.params.postId);
@@ -208,7 +205,7 @@ const deletePost = async (req, res) => {
 const reactToPost = async (req, res) => {
   try {
     const postId = req.params.id;
-    const userId = req.user?._id;
+    const userId = req.user?.userId;
     const username = req.user?.username;
     const { emoji } = req.body;
 
