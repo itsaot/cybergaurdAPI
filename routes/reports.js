@@ -15,9 +15,10 @@ const { auth, isAdmin } = require('../middleware/auth');
 
 // ✅ Public route — anyone can submit a report
 router.post('/', createReport);
+router.get('/', getAllReports);               // View all reports
 
 // ✅ Admin-only routes
-router.get('/', auth, isAdmin, getAllReports);               // View all reports
+
 router.get('/flagged', auth, isAdmin, getFlaggedReports);   // View flagged only
 router.get('/:id', auth, isAdmin, getReportById);           // View single report by ID
 router.patch('/:id/flag', auth, isAdmin, flagReport);       // Flag a report
