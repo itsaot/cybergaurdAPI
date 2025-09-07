@@ -26,6 +26,19 @@ const ReportSchema = new mongoose.Schema({
     enum: ['low', 'medium', 'high'],
     default: 'medium',
   },
+  aiAnalyzed: { // track if AI analyzed the report
+    type: Boolean,
+    default: false,
+  },
+  aiConfidence: { // AI confidence in severity
+    type: Number,
+    min: 0,
+    max: 1,
+  },
+  aiNotes: { // optional AI reasoning/summary
+    type: String,
+    trim: true,
+  },
   yourRole: {
     type: String,
     required: [true, 'Your role is required'],

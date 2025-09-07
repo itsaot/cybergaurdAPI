@@ -4,35 +4,51 @@ require("dotenv").config();
 
 const chat = async (req, res) => {
   try {
-    // Dynamically import OpenAI SDK v4+
     const { default: OpenAI } = await import("openai");
 
-    console.log("OPENAI_API_KEY in chatbotController:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
+    console.log("DEEPSEEK_API_KEY:", process.env.DEEPSEEK_API_KEY ? "[FOUND]" : "[NOT FOUND]");
     console.log("Incoming request body:", req.body);
 
     const { message } = req.body;
-
     if (!message) {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    // Try DeepSeek AI first
+    const client = new OpenAI({
+      apiKey: process.env.DEEPSEEK_API_KEY,
+      baseURL: "https://api.deepseek.com",
     });
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const response = await client.chat.completions.create({
+      model: "deepseek-chat",
       messages: [{ role: "user", content: message }],
+      temperature: 0.3,
     });
-
-    console.log("OpenAI response:", response);
 
     const reply = response.choices[0]?.message?.content;
+    return res.status(200).json({ reply, source: "deepseek" });
 
-    res.status(200).json({ reply });
   } catch (error) {
-    console.error("Chatbot error:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("DeepSeek error, falling back:", error.message);
+
+    // 🔻 Fallback severity classifier (simple keyword-based)
+    const { message } = req.body;
+    let severity = "low";
+
+    const highRiskWords = ["kill", "suicide", "weapon", "rape", "murder"];
+    const mediumRiskWords = ["fight", "threat", "beat", "bully", "abuse"];
+
+    if (highRiskWords.some((w) => message.toLowerCase().includes(w))) {
+      severity = "high";
+    } else if (mediumRiskWords.some((w) => message.toLowerCase().includes(w))) {
+      severity = "medium";
+    }
+
+    return res.status(200).json({
+      reply: `⚠️ This report seems to be **${severity.toUpperCase()} severity** based on the description.`,
+      source: "fallback",
+    });
   }
 };
 

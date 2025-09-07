@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 // Load environment variables
 dotenv.config();
 
-console.log("OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "[FOUND]" : "[NOT FOUND]");
+console.log("DEEPSEEK_API_KEY:", process.env.DEEPSEEK_API_KEY ? "[FOUND]" : "[NOT FOUND]");
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "[FOUND]" : "[NOT FOUND]");
 console.log("JWT_REFRESH_SECRET:", process.env.JWT_REFRESH_SECRET ? "[FOUND]" : "[NOT FOUND]");
 
