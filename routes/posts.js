@@ -19,8 +19,9 @@ const { auth, isAdmin } = require("../middleware/auth");
 
 // Public routes
 router.get("/", getPosts);
-router.post("/",auth, createPost); // 🔒 You might want to secure this too
+router.get("/flagged", isAdmin, getFlaggedPosts);
 router.get("/:id", getPostById);
+router.post("/",auth, createPost); // 🔒 You might want to secure this too
 
 // Like/unlike
 router.post("/:postId/like", auth, toggleLikePost); // ✅ added auth
@@ -33,7 +34,7 @@ router.post("/:postId/comments/:commentId/replies",auth, replyToComment);
 router.delete("/:postId/comments/:commentId", auth, deleteComment);
 
 // Flagging — let all authenticated users flag
-router.post("/:postId/flag", auth, flagPost); // ✅ remove isAdmin unless only admins can flag
+router.post("/:postId/flag", auth, isAdmin, flagPost); // ✅ remove isAdmin unless only admins can flag
 
 // Admin-only routes
 router.delete("/:postId", auth, isAdmin, softDeletePost);
