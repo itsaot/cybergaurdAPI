@@ -13,6 +13,7 @@ const {
   softDeletePost,
   flagPost,
   deletePost,
+  getFlaggedPosts,
 } = require("../controllers/postController");
 
 const { auth, isAdmin } = require("../middleware/auth");
