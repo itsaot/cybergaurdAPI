@@ -18,9 +18,17 @@ const {
 
 const { auth, isAdmin } = require("../middleware/auth");
 
-// Public routes
+
 router.get("/", getPosts);
-router.get("/flagged", isAdmin, getFlaggedPosts);
+router.get('/flagged', auth, isAdmin, async (req, res) => {
+  try {
+    const flaggedPosts = await Post.find({ flagged: true });
+    res.status(200).json(flaggedPosts);
+  } catch (err) {
+    console.error('Error in /flagged route:', err);  // <- important
+    res.status(500).json({ message: 'Failed to fetch flagged posts', error: err.message });
+  }
+});
 router.get("/:id", getPostById);
 router.post("/",auth, createPost); // 🔒 You might want to secure this too
 
