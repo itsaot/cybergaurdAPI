@@ -23,7 +23,6 @@ const allowedOrigins = [
   "https://cyberguard-speak-up.vercel.app",
   /\.lovable\.app$/,           // any Lovable preview
   /\.lovableproject\.com$/,    // any Lovable project link
-  "https://cybergaurdapi.onrender.com",
   "http://localhost:8080"
 ];
 
