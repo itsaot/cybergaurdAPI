@@ -1,10 +1,6 @@
 const Report = require('../models/Report');
 
-const { default: OpenAI } = await import('openai');
-
 // POST /api/reports
-const Report = require("../models/Report");
-
 exports .createReport = async (req, res) => {
   try {
     const {
