@@ -1,54 +1,17 @@
 const Report = require('../models/Report');
 
 const { default: OpenAI } = await import('openai');
-const deepseekClient = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: 'https://api.deepseek.com',
-});
-const createReport = async (req, res) => {
-  try {
-    const { incidentType, platform, description, yourRole, evidence, anonymous } = req.body;
 
-    const newReport = new Report({ incidentType, platform, description, yourRole, evidence, anonymous });
-
-    // AI severity analysis
-    const aiResponse = await deepseekClient.chat.completions.create({
-      model: 'deepseek-chat',
-      messages: [{
-        role: 'user',
-        content: `Analyze this incident description and assign severity (low, medium, high). Respond only with JSON: {"severity":"<low|medium|high>", "confidence": <0-1>, "notes":"<optional explanation>"} Description: ${description}`
-      }],
-      temperature: 0.2
-    });
-
-    const reply = aiResponse.choices[0]?.message?.content;
-
-    try {
-      const aiData = JSON.parse(reply);
-      newReport.severity = aiData.severity || 'medium';
-      newReport.aiConfidence = aiData.confidence || 0;
-      newReport.aiNotes = aiData.notes || '';
-      newReport.aiAnalyzed = true;
-    } catch (err) {
-      console.warn('Failed to parse AI response, using defaults', err);
-    }
-
-    await newReport.save();
-    res.status(201).json(newReport);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to create report', error: err.message });
-  }
-};
 // POST /api/reports
-/*exports.createReport = async (req, res) => {
+const Report = require("../models/Report");
+
+exports .createReport = async (req, res) => {
   try {
     const {
       incidentType,
       platform,
       description,
       date,
-      severity,
       yourRole,
       evidence,
       anonymous,
@@ -58,24 +21,64 @@ const createReport = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const report = new Report({
+    const newReport = new Report({
       incidentType,
       platform,
       description,
       date,
-      severity,
       yourRole,
       evidence,
       anonymous,
     });
 
-    await report.save();
-    res.status(201).json({ message: "Report submitted successfully", report });
+    // ✅ Run AI severity analysis
+    try {
+      const { default: OpenAI } = await import("openai");
+
+      const deepseekClient = new OpenAI({
+        apiKey: process.env.DEEPSEEK_API_KEY,
+        baseURL: "https://api.deepseek.com",
+      });
+
+      const aiResponse = await deepseekClient.chat.completions.create({
+        model: "deepseek-chat",
+        messages: [
+          {
+            role: "user",
+            content: `Analyze this incident description and assign severity (low, medium, high). Respond only with JSON: {"severity":"<low|medium|high>", "confidence": <0-1>, "notes":"<optional explanation>"} Description: ${description}`,
+          },
+        ],
+        temperature: 0.2,
+      });
+
+      const reply = aiResponse.choices[0]?.message?.content;
+
+      try {
+        const aiData = JSON.parse(reply);
+        newReport.severity = aiData.severity || "medium";
+        newReport.aiConfidence = aiData.confidence || 0;
+        newReport.aiNotes = aiData.notes || "";
+        newReport.aiAnalyzed = true;
+      } catch (err) {
+        console.warn("⚠️ Failed to parse AI response, using defaults", err);
+      }
+    } catch (err) {
+      console.error("⚠️ AI analysis failed, falling back to defaults:", err.message);
+    }
+
+    await newReport.save();
+    res.status(201).json({
+      message: "Report submitted successfully",
+      report: newReport,
+    });
   } catch (err) {
-    console.error("Error in createReport:", err);
-    res.status(500).json({ message: "Failed to submit report", error: err.message });
+    console.error("❌ Error in createReport:", err);
+    res.status(500).json({
+      message: "Failed to submit report",
+      error: err.message,
+    });
   }
-};*/
+};
 
 // GET /api/reports
 exports.getAllReports = async (req, res) => {
