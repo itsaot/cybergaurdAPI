@@ -41,7 +41,7 @@ const createReport = async (req, res) => {
   }
 };
 // POST /api/reports
-exports.createReport = async (req, res) => {
+/*exports.createReport = async (req, res) => {
   try {
     const {
       incidentType,
@@ -75,7 +75,7 @@ exports.createReport = async (req, res) => {
     console.error("Error in createReport:", err);
     res.status(500).json({ message: "Failed to submit report", error: err.message });
   }
-};
+};*/
 
 // GET /api/reports
 exports.getAllReports = async (req, res) => {
