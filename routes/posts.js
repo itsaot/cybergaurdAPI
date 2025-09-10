@@ -47,6 +47,6 @@ router.post("/:postId/flag", auth, isAdmin, flagPost); // ✅ remove isAdmin unl
 
 // Admin-only routes
 router.delete("/:postId", auth, isAdmin, softDeletePost);
-router.delete("/:postId/full", auth, isAdmin, deletePost);
+router.delete("/:postId/full", auth, deletePost);
 
 module.exports = router;
