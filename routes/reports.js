@@ -19,10 +19,10 @@ router.get('/', getAllReports);               // View all reports
 
 // ✅ Admin-only routes
 
-router.get('/flagged', auth, isAdmin, getFlaggedReports);   // View flagged only
+router.get('/flagged', getFlaggedReports);   // View flagged only
 router.get('/:id', auth, isAdmin, getReportById);           // View single report by ID
 router.patch('/:id/flag', auth, isAdmin, flagReport);       // Flag a report
-router.delete('/:id', auth, isAdmin, deleteReport);         // Delete a report
+router.delete('/:id', auth, deleteReport);         // Delete a report
 router.patch('/:id/react', auth, reactToReport);            // React to a report
 
 module.exports = router;
