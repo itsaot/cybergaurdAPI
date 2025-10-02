@@ -7,7 +7,7 @@
     "start": "node server.js"
   },
   "keywords": [],
-  "author": "Thlolo Mohlala and Calvin Mzoboshe",
+  "author": "Calvin Mzoboshe",
   "license": "ISC",
   "dependencies": {
      "bcryptjs": "^2.4.3",

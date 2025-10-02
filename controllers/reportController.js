@@ -1,4 +1,5 @@
 const Report = require('../models/Report');
+const mongoose = require("mongoose");
 
 // POST /api/reports
 exports .createReport = async (req, res) => {
