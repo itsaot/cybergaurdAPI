@@ -48,7 +48,7 @@ router.delete("/:postId/comments/:commentId", auth, deleteComment);
 router.post("/:postId/flag", auth, isAdmin, flagPost); // ✅ remove isAdmin unless only admins can flag
 
 //Users can delete their own comments; admins can delete any comment
-router.delete("/:postId/full", auth, deletePost);
+router.delete("/:postId/full", auth, isAdmin, deletePost);
 // Admin-only routes
 router.delete("/:postId", auth, isAdmin, softDeletePost);
 
