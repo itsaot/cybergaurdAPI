@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const User = require('../models/User'); // adjust path if needed
 
 const createAdmin = async () => {
@@ -13,18 +13,18 @@ const createAdmin = async () => {
     console.log('✅ Connected to MongoDB Atlas');
 
     // 2️⃣ Check if admin already exists
-    const existingAdmin = await User.findOne({ username: 'cyber100' });
+    const existingAdmin = await User.findOne({ username: 'kjmckenny' });
     if (existingAdmin) {
       console.log('⚠️ Admin user already exists:', existingAdmin.username);
       return;
     }
 
     // 3️⃣ Hash the password
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('M@ckenny', 10);
 
     // 4️⃣ Create admin user
     const adminUser = new User({
-      username: 'cyber100',
+      username: 'kjmckenny',
       password: hashedPassword,
       role: 'admin', // ✅ ensure this matches your backend role
       refreshTokens: [],

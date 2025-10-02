@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const Report = require('../models/Report'); // correct path
+
 
 const {
   createReport,
