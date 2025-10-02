@@ -188,15 +188,17 @@ const flagPost = async (req, res) => {
 };
 
 // Get all flagged posts
+// postsController.js
 const getFlaggedPosts = async (req, res) => {
   try {
     const posts = await Post.find({ flagged: true });
-    res.status(200).json(posts);
+    res.json(posts);
   } catch (err) {
-    console.error("Error fetching flagged posts:", err);
-    res.status(500).json({ message: "Failed to fetch flagged posts", error: err.message });
+    console.error('Error fetching flagged posts:', err);
+    res.status(500).json({ message: 'Server error fetching flagged posts' });
   }
 };
+
 
 // Admin hard delete
 const deletePost = async (req, res) => {

@@ -13,7 +13,7 @@ const createAdmin = async () => {
     console.log('✅ Connected to MongoDB Atlas');
 
     // 2️⃣ Check if admin already exists
-    const existingAdmin = await User.findOne({ username: 'admin' });
+    const existingAdmin = await User.findOne({ username: 'cyber100' });
     if (existingAdmin) {
       console.log('⚠️ Admin user already exists:', existingAdmin.username);
       return;
@@ -24,7 +24,7 @@ const createAdmin = async () => {
 
     // 4️⃣ Create admin user
     const adminUser = new User({
-      username: 'admin',
+      username: 'cyber100',
       password: hashedPassword,
       role: 'admin', // ✅ ensure this matches your backend role
       refreshTokens: [],
