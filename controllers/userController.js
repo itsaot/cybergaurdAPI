@@ -63,20 +63,31 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
-    const payload = { id: user.id, role: user.role, username: user.username };
+    const payload = {
+      id: user.id,
+      role: user.role,
+      username: user.username
+    };
 
-    const accessToken = generateAccessToken(payload);
-    const refreshToken = generateRefreshToken(payload);
+    // ✅ Use utility functions
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
 
-    // Set refresh token cookie
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    // ✅ Secure cookie for refresh token
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only HTTPS in prod
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
 
     res.json({ accessToken });
   } catch (err) {
-    console.error(err.message);
+    console.error("Login error:", err.message);
     res.status(500).send("Server error");
   }
 };
+
 
 // ----------------------
 // REFRESH TOKEN
