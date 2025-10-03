@@ -21,7 +21,8 @@ router.post("/refresh", refreshToken);   // refresh token route (no auth middlew
 router.post("/logout", logout);          // logout route (no auth middleware)
 
 router.get("/user", auth, getUser);
-router.put("/user", auth, updateUser);
+router.patch("/user", auth, updateUser);
+
 router.delete("/user", auth, deleteUser);
 
 // Admin-only routes (optionally protect with isAdmin middleware)
