@@ -10,8 +10,10 @@
   "author": "Calvin Mzoboshe",
   "license": "ISC",
   "dependencies": {
-     "bcryptjs": "^2.4.3",
+    "@azure-rest/ai-inference": "^1.0.0-beta.6",
+    "@azure/core-auth": "^1.10.1",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
