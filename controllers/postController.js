@@ -203,22 +203,22 @@ const getFlaggedPosts = async (req, res) => {
 // Admin hard delete
 const deletePost = async (req, res) => {
   try {
-    const { postId } = req.params;
-    const userId = req.user.userId.toString(); // from auth middleware
-    const userRole = req.user.role;
-
-    const post = await Post.findById(postId);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-
-    // Only allow if admin OR post owner
-    if (userRole !== "admin" && post.user.toString() !== userId) {
-      return res.status(403).json({ message: "You can only delete your own posts" });
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    await Post.findByIdAndDelete(postId);
+    // ✅ Admin can delete any post
+    // ✅ User can only delete their own
+    if (req.user.role !== "admin" && post.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to delete this post" });
+    }
+
+    await post.deleteOne();
     res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Delete post error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
