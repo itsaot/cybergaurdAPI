@@ -1,7 +1,8 @@
 // /src/controllers/chatbotController.js
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-const chat = async (req, res) => {
+export const chat = async (req, res) => {
   try {
     const { default: OpenAI } = await import("openai");
 
@@ -13,40 +14,34 @@ const chat = async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
+    // Initialize DeepSeek client
     const client = new OpenAI({
       apiKey: process.env.DEEPSEEK_API_KEY,
       baseURL: "https://api.deepseek.com",
     });
 
+    // Send message to DeepSeek AI
     const response = await client.chat.completions.create({
       model: "deepseek-chat",
       messages: [{ role: "user", content: message }],
       temperature: 0.3,
     });
 
-    const reply = response.choices?.[0]?.message?.content;
+    const reply = response.choices[0]?.message?.content || "No response received.";
 
-    if (!reply) {
-      console.error("No reply from DeepSeek response:", response);
-      return res.status(500).json({ error: "No reply from DeepSeek" });
-    }
-
-    console.log("DeepSeek reply:", reply);
-    return res.status(200).json({ reply, source: "deepseek" });
+    // ✅ Return in frontend-compatible format
+    return res.status(200).json({
+      response: reply,
+      timestamp: new Date().toISOString(),
+    });
 
   } catch (error) {
-    console.error("💥 DeepSeek error caught!");
-    console.error("Message:", error.message);
+    console.error("DeepSeek error:", error.message);
 
-    if (error.response) {
-      console.error("Response status:", error.response.status);
-      console.error("Response data:", error.response.data);
-    }
-    if (error.stack) console.error(error.stack);
-
-    // Fallback keyword-based severity analysis
+    // 🔻 Simple fallback classifier
     const { message } = req.body;
     let severity = "low";
+
     const highRiskWords = ["kill", "suicide", "weapon", "rape", "murder"];
     const mediumRiskWords = ["fight", "threat", "beat", "bully", "abuse"];
 
@@ -57,10 +52,8 @@ const chat = async (req, res) => {
     }
 
     return res.status(200).json({
-      reply: `⚠ This report seems to be **${severity.toUpperCase()} severity** based on the description.`,
-      source: "fallback",
+      response: `⚠️ This report seems to be **${severity.toUpperCase()} severity** based on the description.`,
+      timestamp: new Date().toISOString(),
     });
   }
 };
-
-module.exports = { chat };
