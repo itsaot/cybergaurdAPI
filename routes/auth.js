@@ -10,9 +10,12 @@ const {
   deleteUser,
   getAllUsers,
   getUserById,
+  createAdmin,
+  promoteToAdmin,
+  
 } = require("../controllers/userController"); // if these are in userController.js
 
-const { auth } = require("../middleware/auth");
+const { auth, isAdmin } = require("../middleware/auth");
 
 // Auth routes
 router.post("/register", register);
@@ -28,5 +31,7 @@ router.delete("/user", auth, deleteUser);
 // Admin-only routes (optionally protect with isAdmin middleware)
 router.get("/users", auth, getAllUsers);
 router.get("/user/:id", auth, getUserById);
+router.post("/admin", auth, isAdmin, createAdmin);
+router.patch("/promote/:userId", auth, isAdmin, promoteToAdmin);
 
 module.exports = router;

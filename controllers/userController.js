@@ -205,6 +205,53 @@ exports.getUserById = async (req, res) => {
   }
 };
 
+// ✅ Create a new admin
+exports.createAdmin = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newAdmin = new User({
+      username,
+      email,
+      password: hashedPassword,
+      role: "admin",
+    });
+
+    await newAdmin.save();
+    res.status(201).json({ message: "Admin account created successfully", newAdmin });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to create admin" });
+  }
+};
+
+// ✅ Promote an existing user to admin
+exports.promoteToAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.role = "admin";
+    await user.save();
+
+    res.status(200).json({ message: `${user.username} is now an admin` });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to promote user" });
+  }
+};
+
 // Access token
 function signAccessToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
