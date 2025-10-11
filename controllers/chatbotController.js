@@ -13,7 +13,6 @@ const chat = async (req, res) => {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    // Try DeepSeek AI first
     const client = new OpenAI({
       apiKey: process.env.DEEPSEEK_API_KEY,
       baseURL: "https://api.deepseek.com",
@@ -25,15 +24,29 @@ const chat = async (req, res) => {
       temperature: 0.3,
     });
 
-    const reply = response.choices[0]?.message?.content;
+    const reply = response.choices?.[0]?.message?.content;
+
+    if (!reply) {
+      console.error("No reply from DeepSeek response:", response);
+      return res.status(500).json({ error: "No reply from DeepSeek" });
+    }
+
+    console.log("DeepSeek reply:", reply);
     return res.status(200).json({ reply, source: "deepseek" });
 
   } catch (error) {
-    console.error("DeepSeek error, falling back:", error.message);
-    // 🔻 Fallback severity classifier (simple keyword-based)
+    console.error("💥 DeepSeek error caught!");
+    console.error("Message:", error.message);
+
+    if (error.response) {
+      console.error("Response status:", error.response.status);
+      console.error("Response data:", error.response.data);
+    }
+    if (error.stack) console.error(error.stack);
+
+    // Fallback keyword-based severity analysis
     const { message } = req.body;
     let severity = "low";
-
     const highRiskWords = ["kill", "suicide", "weapon", "rape", "murder"];
     const mediumRiskWords = ["fight", "threat", "beat", "bully", "abuse"];
 
