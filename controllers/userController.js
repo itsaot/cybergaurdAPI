@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
       secure: process.env.NODE_ENV === "production", // only HTTPS in prod
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    }, cookieOptions);
 
     res.json({ accessToken });
   } catch (err) {
@@ -131,6 +131,7 @@ exports.logout = (req, res) => {
 exports.getUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ msg: "User not found" });
     res.json(user);
   } catch (err) {
     res.status(500).send("Server error");
@@ -141,23 +142,21 @@ exports.getUser = async (req, res) => {
 // UPDATE USER
 // ----------------------
 exports.updateUser = async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, email, password, role } = req.body;
 
   try {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     if (username) user.username = username;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-    }
+    if (email) user.email = email;
+    if (password) user.password = await bcrypt.hash(password, 10);
     if (role) user.role = role;
 
     await user.save();
-    res.json({ msg: "User updated successfully" });
+    res.json({ msg: "User updated successfully", user: { ...user._doc, password: undefined } });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).send("Server error");
   }
 };
@@ -167,13 +166,13 @@ exports.updateUser = async (req, res) => {
 // ----------------------
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     await user.remove();
     res.json({ msg: "User deleted successfully" });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).send("Server error");
   }
 };
@@ -186,13 +185,13 @@ exports.getAllUsers = async (req, res) => {
     const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).send("Server error");
   }
 };
 
 // ----------------------
-// GET USER BY ID
+// GET USER BY ID (net fela di admin)
 // ----------------------
 exports.getUserById = async (req, res) => {
   try {
@@ -200,7 +199,7 @@ exports.getUserById = async (req, res) => {
     if (!user) return res.status(404).json({ msg: "User not found" });
     res.json(user);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).send("Server error");
   }
 };
@@ -210,45 +209,36 @@ exports.createAdmin = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    if (!username || !email || !password) return res.status(400).json({ msg: "All fields are required" });
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    if (existingUser) return res.status(400).json({ msg: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newAdmin = new User({
-      username,
-      email,
-      password: hashedPassword,
-      role: "admin",
-    });
-
+    const newAdmin = new User({ username, email, password: hashedPassword, role: "admin" });
     await newAdmin.save();
-    res.status(201).json({ message: "Admin account created successfully", newAdmin });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to create admin" });
+
+    res.status(201).json({ msg: "Admin created successfully", user: { ...newAdmin._doc, password: undefined } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to create admin" });
   }
 };
 
 // ✅ Promote an existing user to admin
 exports.promoteToAdmin = async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findById(req.params.userId);
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
     user.role = "admin";
     await user.save();
 
-    res.status(200).json({ message: `${user.username} is now an admin` });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to promote user" });
+    res.json({ msg: `${user.username} is now an admin`, user: { ...user._doc, password: undefined } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to promote user" });
   }
 };
 

@@ -26,12 +26,13 @@ router.post("/logout", logout);          // logout route (no auth middleware)
 router.get("/user", auth, getUser);
 router.patch("/user", auth, updateUser);
 
-router.delete("/user", auth, deleteUser);
+
 
 // Admin-only routes (optionally protect with isAdmin middleware)
 router.get("/users", auth, getAllUsers);
 router.get("/user/:id", auth, getUserById);
 router.post("/admin", auth, isAdmin, createAdmin);
 router.patch("/promote/:userId", auth, isAdmin, promoteToAdmin);
+router.delete("/user", auth,isAdmin, deleteUser);
 
 module.exports = router;
