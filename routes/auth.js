@@ -33,6 +33,7 @@ router.get("/users", auth, getAllUsers);
 router.get("/user/:id", auth, getUserById);
 router.post("/admin", auth, isAdmin, createAdmin);
 router.patch("/promote/:userId", auth, isAdmin, promoteToAdmin);
-router.delete("/user", auth,isAdmin, deleteUser);
+router.delete("/user/:userId?", auth, isAdmin, deleteUser);
+
 
 module.exports = router;
