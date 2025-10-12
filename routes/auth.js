@@ -7,7 +7,7 @@ const {
   logout,          // add this
   getUser,
   updateUser,
-  deleteUser,
+  deleteUserByAdmin,
   getAllUsers,
   getUserById,
   createAdmin,
@@ -33,7 +33,8 @@ router.get("/users", auth, getAllUsers);
 router.get("/user/:id", auth, getUserById);
 router.post("/admin", auth, isAdmin, createAdmin);
 router.patch("/promote/:userId", auth, isAdmin, promoteToAdmin);
-router.delete("/user/:userId?", auth, isAdmin, deleteUser);
+router.delete("/user/:userId", auth, isAdmin, deleteUserByAdmin);
+
 
 
 module.exports = router;

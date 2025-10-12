@@ -165,20 +165,7 @@ exports.updateUser = async (req, res) => {
 // DELETE USER
 // ----------------------
 // DELETE /api/auth/user/:userId
-exports.deleteUser = async (req, res) => {
-  try {
-    const userId = req.params.userId || req.user.id;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ msg: "User not found" });
-
-    await user.remove();
-    res.json({ msg: "User deleted successfully" });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
-  }
-};
 
 
 // ----------------------
@@ -189,22 +176,19 @@ exports.getAllUsers = async (req, res) => {
     const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 // ----------------------
 // GET USER BY ID (net fela di admin)
 // ----------------------
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ msg: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -212,37 +196,45 @@ exports.getUserById = async (req, res) => {
 exports.createAdmin = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
-    if (!username || !email || !password) return res.status(400).json({ msg: "All fields are required" });
+    if (!username || !email || !password) return res.status(400).json({ message: "All fields are required" });
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ msg: "User already exists" });
+    if (existingUser) return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const newAdmin = new User({ username, email, password: hashedPassword, role: "admin" });
-    await newAdmin.save();
 
-    res.status(201).json({ msg: "Admin created successfully", user: { ...newAdmin._doc, password: undefined } });
+    await newAdmin.save();
+    res.status(201).json({ message: "Admin account created successfully", newAdmin });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Failed to create admin" });
+    res.status(500).json({ message: "Failed to create admin" });
   }
 };
 
 // ✅ Promote an existing user to admin
 exports.promoteToAdmin = async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(404).json({ msg: "User not found" });
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     user.role = "admin";
     await user.save();
-
-    res.json({ msg: `${user.username} is now an admin`, user: { ...user._doc, password: undefined } });
+    res.status(200).json({ message: `${user.username} is now an admin` });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Failed to promote user" });
+    res.status(500).json({ message: "Failed to promote user" });
+  }
+};
+exports.deleteUserByAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    await user.remove();
+    res.json({ message: "User deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete user" });
   }
 };
 
