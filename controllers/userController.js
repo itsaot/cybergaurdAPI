@@ -225,7 +225,7 @@ exports.promoteToAdmin = async (req, res) => {
     res.status(500).json({ message: "Failed to promote user" });
   }
 };
-const deleteUserByAdmin = async (req, res) => {
+ exports.deleteUserByAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
 
